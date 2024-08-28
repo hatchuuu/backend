@@ -5,31 +5,28 @@
 
 const express = require("express");
 const router = express.Router();
+const prisma = require("../lib");
+const { getAllProducts, getProductById } = require("./product.services");
 
 //Ambil semua data
-router.get("/products", async (req, res) => {
-    const products = await prisma.product.findMany();
-    res.json(products);
+router.get("/", async (req, res) => {
+    const products = await getAllProducts();
+    res.send(products);
 });
 
 //Cari data berdasarkan ID
-router.get("/products/:id", async (req, res) => {
-    const productId = req.params.id;
-    const product = await prisma.product.findUnique({ //findUnique untuk mencari data yang unik
-        where:{
-            id: parseInt(productId),
-        },
-    });
-
-    if (!product) {
-        res.status(400).send("Data tidak ditemukan");
-        return;
+router.get("/:id", async (req, res) => {
+    try {
+        const producId = req.params.id;
+        const product = await getProductById(parseInt(producId));
+        res.send(product);  
+    } catch (error) {
+        res.status(400).send(error.message)
     }
-    res.send(product);  
 });
 
 //Tambah data
-router.post("/products", async (req, res) => {
+router.post("/", async (req, res) => {
     const parameter = req.body;
     const products = await prisma.product.create({
         data: {
@@ -43,7 +40,7 @@ router.post("/products", async (req, res) => {
 });
 
 //Hapus data
-router.delete("/products/:id", async (req, res) => {
+router.delete("/:id", async (req, res) => {
     const id = req.params.id;
     const products = await prisma.product.delete({
         where: {
@@ -54,7 +51,7 @@ router.delete("/products/:id", async (req, res) => {
 });
 
 //Ubah data - semua kolom harus terisi
-router.put("/products/:id", async (req, res) => {
+router.put("/:id", async (req, res) => {
     const id = req.params.id;
     const parameter = req.body;
 
@@ -82,7 +79,7 @@ router.put("/products/:id", async (req, res) => {
 });
 
 //Ubah data - hanya kolom yang diisi
-router.patch("/products/:id", async (req, res) => {
+router.patch("/:id", async (req, res) => {
     const id = req.params.id;
     const parameter = req.body;
 
