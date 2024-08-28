@@ -5,8 +5,7 @@
 
 const express = require("express");
 const router = express.Router();
-const prisma = require("../lib");
-const { getAllProducts, getProductById } = require("./product.services");
+const { getAllProducts, getProductById, createProduct, deleteProductById, updateProduct } = require("./product.services");
 
 //Ambil semua data
 router.get("/", async (req, res) => {
@@ -17,9 +16,9 @@ router.get("/", async (req, res) => {
 //Cari data berdasarkan ID
 router.get("/:id", async (req, res) => {
     try {
-        const producId = req.params.id;
-        const product = await getProductById(parseInt(producId));
-        res.send(product);  
+        const id = req.params.id;
+        const product = await getProductById(parseInt(id));
+        res.send(product);
     } catch (error) {
         res.status(400).send(error.message)
     }
@@ -27,77 +26,60 @@ router.get("/:id", async (req, res) => {
 
 //Tambah data
 router.post("/", async (req, res) => {
-    const parameter = req.body;
-    const products = await prisma.product.create({
-        data: {
-            name: parameter.name,
-            price: parameter.price,
-            description: parameter.description,
-            image: parameter.image,
-        },
-    }); //create data
-    res.status(201).send("Data berhasil ditambahkan");
+    try {
+        const productData = req.body;
+        const products = await createProduct(productData)
+        res.status(201).send("Data berhasil ditambahkan");
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
 });
 
 //Hapus data
 router.delete("/:id", async (req, res) => {
-    const id = req.params.id;
-    const products = await prisma.product.delete({
-        where: {
-            id: parseInt(id), //ubah jadi integer
-        },
-    }); //hapus data
-    res.status(200).send("Data berhasil dihapus");
+    try {
+        const id = req.params.id;
+        await deleteProductById(parseInt(id));
+        res.status(200).send("Data berhasil dihapus");
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
 });
 
 //Ubah data - semua kolom harus terisi
-router.put("/:id", async (req, res) => {
-    const id = req.params.id;
-    const parameter = req.body;
+router.patch("/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const productData = req.body;
 
-    //Buat sebuah kondisi ketika ada kolom yang tidak terisi
-    if (!parameter.name || !parameter.price || !parameter.description || !parameter.image) {
-        res.status(400).send("Data tidak lengkap");
-        return;
+        //Buat sebuah kondisi ketika ada kolom yang tidak terisi
+        if (!productData.name ||
+            !productData.price ||
+            !productData.description ||
+            !productData.image) {
+            res.status(400).send("Data tidak lengkap");
+            return;
+        }
+        const products = await updateProduct(parseInt(id), productData);
+        res.status(200).send("Data berhasil diubah");
+
+    } catch (error) {
+        res.status(400).send(error.message);
     }
-
-    const products = await prisma.product.update({
-        where: {
-            id: parseInt(id),
-        },
-        data: {
-            name: parameter.name,
-            price: parameter.price,
-            description: parameter.description,
-            image: parameter.image,
-        },
-    }); //update data
-    res.send({
-        message: "Data berhasil diubah",
-        data: products,
-    })
 });
 
 //Ubah data - hanya kolom yang diisi
-router.patch("/:id", async (req, res) => {
-    const id = req.params.id;
-    const parameter = req.body;
+router.put("/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const productData = req.body;
 
-    const products = await prisma.product.update({
-        where: {
-            id: parseInt(id),
-        },
-        data: {
-            name: parameter.name,
-            price: parameter.price,
-            description: parameter.description,
-            image: parameter.image,
-        },
-    }); //update data
-    res.send({
-        message: "Data berhasil diubah",
-        data: products,
-    })
+        const products = await updateProduct(parseInt(id), productData);
+        res.status(200).send("Data berhasil diubah");
+
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
 });
 
 module.exports = router;

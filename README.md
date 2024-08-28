@@ -44,3 +44,18 @@ buat api baru dengan app.use(route, router)
 
 masukkan prisma pada lib dan export
 import prisma ke controler
+
+# versi 3 - Tambahan 3 layered architecture
+
+prisma import ke repository untuk koneksi ke database
+repo hanya untuk kontrol database saja
+seperti CRUD saja
+
+kemudian untuk bagian services digunakan untuk function yang dapat di re-usable
+misalnya hapus data, maka menggunakan findId() terlebih dahulu untuk memastikan id ada atau tidak
+sehingga terdapat function di dalam function
+
+controller digunakan untuk handle input saja
+apakah yang masuk adalah integer?
+apakah kolom sudah terisi semua?
+

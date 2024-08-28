@@ -1,40 +1,49 @@
-const prisma = require("../lib");
+//functionya re-usable
+
+const { findProduct, findProductByName, findProductById, insertProduct, deleteProduct, editProduct} = require("./product.repository");
+const {} = require("./product.services");
+
 
 const getAllProducts = async () => {
-    const products = await prisma.product.findMany();
+    const products = await findProduct();
     return products;
 };
- 
-const getProductById = async (id) => {
-    if (typeof id !== "number") {
-        throw new Error("ID harus berupa angka");
-    }
-    const product = await prisma.product.findUnique({ //findUnique untuk mencari data yang unik
-        where: {
-            id,
-        },
-    });
 
+const getProductById = async (id) => {
+    const product = await findProductById(id);
     if (!product) {
         throw new Error("Product tidak ditemukan");
     }
     return product;
 }
 
-const createProduct = async (productData) =>{
-const product = await prisma.product.create({
-    data:{
-        name: productData.name,
-        price: productData.price,
-        description: productData.description,
-        image: productData.image,
-    },
-    })
-
+const createProduct = async (productData) => {
+    //validasi apakah nama produk sudah ada
+    const productName = await findProductByName(productData.name);
+    if(productName) {
+        throw new Error("Product sudah ada");
+    }
+    const product = await insertProduct(productData);
+    return product;
 }
+
+const deleteProductById = async (id) => {
+    await getProductById(id);
+    await deleteProduct(id);
+};
+
+const updateProduct = async (id, productData) => {
+    await getProductById(id);
+    const product = await editProduct(id, productData);
+    return product;
+};
 
 
 module.exports = {
     getAllProducts,
     getProductById,
+    createProduct,
+    deleteProductById,
+    updateProduct,
+
 }

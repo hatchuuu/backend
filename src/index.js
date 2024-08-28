@@ -9,6 +9,8 @@ const dotenv = require("dotenv");
 dotenv.config();
 const PORT = process.env.PORT;
 
+const cors = require("cors");
+app.use(cors());
 
 //? Routing
 app.get("/api", (req, res) => {
